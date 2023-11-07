@@ -8,9 +8,7 @@ import datetime
 from num2words import num2words
 import subprocess
 import webbrowser
-from playsound import playsound
-import random
-
+from record import record
 
 
 
@@ -27,17 +25,17 @@ def help():
     speak('я умею показывать погоду, считать, писать и переводить, как чи+сла, так, и буквы, а также выполнять простые действия с вашим компьютером.')
 
 
-
-
 def thank():
     speak("Всегда пожалуйста.")
 
 
 
 
-def weather(city, open_weather_token):
+def weather():
 
-
+    city = "moscow"
+    open_weather_token=config.open_weather_token
+    #city = data["name"] <-- если не лень то это надо пофиксить
     code_to_status = {
         "Clear" : 'ясная',
         "Clouds" : 'облачная',
@@ -55,13 +53,12 @@ def weather(city, open_weather_token):
 
         data = r.json()
 
-        city = data["name"]
         cur_weather = data["main"]["temp"]
         pressure = data["main"]["pressure"]
         feels_like = data["main"]["feels_like"]
         wind = data["wind"]["speed"]
-        sunrise_timestamp = datetime.datetime.fromtimestamp(data["sys"]["sunrise"])
-        sunset_timestamp = datetime.datetime.fromtimestamp(data["sys"]["sunset"])
+        # sunrise_timestamp = datetime.datetime.fromtimestamp(data["sys"]["sunrise"])
+        # sunset_timestamp = datetime.datetime.fromtimestamp(data["sys"]["sunset"])
         
 
         weather_status = data["weather"][0]["main"]
@@ -79,7 +76,7 @@ def weather(city, open_weather_token):
         elif code_to_status["Rain"] or code_to_status["Drizzle"] or code_to_status["Thunderstorm"]:
             text += f' На улице {ws}.'
 
-        text += f" Скорость ветра {num2words(int(wind), lang='ru')} метров в секунду. Давление {num2words(int(pressure), lang='ru')} паскаль."
+        text += f" Скорость ве+тра {num2words(int(wind), lang='ru')} метров в секунду. Давление {num2words(int(pressure), lang='ru')} паскаль."
         speak(text)
 
 
@@ -88,15 +85,13 @@ def weather(city, open_weather_token):
         print('Ошибка в погоде')
 
 
-
-
 def open_browser():
     path_to_exe = "C:/Users/vladg/AppData/Local/Yandex/YandexBrowser/Application/browser.exe"
     subprocess.Popen(path_to_exe)
 
 
 def open_sites():
-    speak("Какой сайт открыть?")
+    speak("Как+ой сайт открыть?")
     search = listen()
     # search = str(input("Сайт: "))
 
@@ -140,12 +135,8 @@ def calc():
     speak('команда в разработке.')
 
 
-
-
 def convert():
     speak('команда в разработке.')
-
-
 
 
 def translate():
@@ -155,8 +146,21 @@ def translate():
 
 
 def main():
-    city = 'moscow'
     # speak(f'Здравствуйте, я ваш виртуальный друг, {config.SP_NAME}.')
+
+    command_functions = {
+    "greeting": greeting,
+    "goodbye": goodbye,
+    "help": help,
+    "thank": thank,
+    "weather": weather,
+    "open_browser": open_browser,
+    "open_sites": open_sites,
+    "calc": calc,
+    "convert": convert,
+    "translate": translate,
+    }
+
     speak(f'Чпокс.')
 
     while True:
@@ -164,7 +168,7 @@ def main():
         # Для теста:
         # user_command = str(input("Команда: "))
         try:
-            execute_command(user_command)
+            execute_command(user_command, command_functions)
         except CommandNotFoundException:
             print('команда не найдена')
         except Exception as e:
@@ -172,30 +176,12 @@ def main():
             print("Ошибка в main.")
         
 
-def execute_command(command):
+def execute_command(command, command_functions):
     for cmd, synonyms in config.VA_CMD_LIST.items():
         if command in synonyms:
-            if cmd == "greeting":
-                greeting()
-            elif cmd == 'goodbye':
-                goodbye()
-            elif cmd == 'help':
-                help()
-            elif cmd == 'thank':
-                thank()
-            elif cmd == 'weather':
-                weather('moscow', config.open_weather_token)
-            elif cmd == 'open_browser':
-                open_browser()
-            elif cmd == 'open_sites':
-                open_sites()
-            elif cmd == 'calc':
-                calc()
-            elif cmd == 'convert':
-                convert()
-            elif cmd == 'translate':
-                translate()
-            return
+            if cmd in command_functions:
+                command_functions[cmd]()
+                return
 
     raise CommandNotFoundException()
 
