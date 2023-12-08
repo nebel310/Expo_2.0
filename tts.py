@@ -8,7 +8,7 @@ language = 'ru'
 model_id = 'ru_v3'
 sample_rate = 48000
 speaker = 'aidar'
-device = torch.device('cpu') # gpu or cpu
+device = torch.device('gpu') # gpu or cpu
 
 model, _ = torch.hub.load(repo_or_dir='snakers4/silero-models',
                                      model='silero_tts',
